@@ -2,7 +2,9 @@
 import {
     Edit,
     Delete,
-    View
+    View,
+    Star,
+    StarFilled
 } from '@element-plus/icons-vue'
 
 import { ref } from 'vue'
@@ -77,7 +79,26 @@ const pageNum = ref(1)//当前页
 const total = ref(20)//总条数
 const pageSize = ref(3)//每页条数
 
-import { articleCategoryListService, articleListService, deleteArticleService, addArticleService, updateArticleService } from '@/api/article.js'
+/**
+ * 文章相关接口
+ */
+import {
+        articleCategoryListService,
+        articleListService,
+        deleteArticleService,
+        addArticleService,
+        updateArticleService
+        } from '@/api/article.js'
+
+/**
+ * 收藏相关接口
+ */
+import {
+        collectArticleService,
+        getCollectionsService,
+        cancelCollectService
+        } from '@/api/collection.js'
+
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 // 文章分类
@@ -168,7 +189,9 @@ const articleModel = ref({
     state:''
 })
 
-// 清空添加表单数据模型
+/**
+ * 清空文章的数据模型
+ */
 const clearArticleModel = () => {
     articleModel.value.id = 0,
     articleModel.value.title = '',
@@ -178,7 +201,11 @@ const clearArticleModel = () => {
     articleModel.value.state = ''
 }
 
-// 添加文章
+/**
+ * 添加文章
+ * @param clickState
+ * @returns {Promise<void>}
+ */
 const addArticle = async (clickState) => {
 
     // 文章上传状态
@@ -201,13 +228,19 @@ import { useTokenStore } from '@/stores/token';
 
 const tokenStore = useTokenStore();
 
-// 上传成功的回调函数
+/**
+ * 上传成功的回调函数
+ * @param result
+ */
 const uploadSuccess = (result) => {
     articleModel.value.coverImg = result.data;
     console.log(result.data);
 }
 
-// 更新文章
+/**
+ * 更新文章
+ * @returns {Promise<void>}
+ */
 const updateArticle = async () => {
     let result = await updateArticleService(articleModel.value);
 
@@ -221,18 +254,99 @@ const updateArticle = async () => {
 }
 
 // 跳转到详情页面
-
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 
+/**
+ * 获取文章详细信息
+ * @param id
+ */
 function goDetail(id) {
     router.push({
         path: '/article/detail',
-        query: {id: id}
+        query: {
+            id
+        }
     })
 }
 
+import { useUserInfoStore } from "@/stores/userInfo.js";
+var userInfoStore = useUserInfoStore();
+
+//用户id
+const userId = userInfoStore.info.id;
+/**
+ * 收藏文章
+ * @param id
+ */
+const collect = async (articleId) => {
+    const result = await collectArticleService(articleId, userId);
+
+    //重新获取收藏数据
+    getCollections(userId)
+
+    ElMessage.success(result.message ? result.message : '收藏成功');
+}
+
+/**
+ * 获取收藏集合
+ * @type {Ref<any>}
+ */
+const collections = ref()
+const getCollections = async (userId) => {
+    let result = await getCollectionsService(userId);
+    collections.value = result.data;
+}
+
+/**
+ * 判断改文章是否已经被当前用户收藏
+ * @param articleId
+ * @returns {boolean}
+ */
+const isCollected = (articleId) => {
+    for (const item in collections.value) {
+        if (collections.value[item] === articleId) return true;
+    }
+
+    return false;
+}
+
+/**
+ * 取消收藏
+ * @param articleId
+ * @returns {Promise<void>}
+ */
+const cancelCollect = async (articleId) => {
+    console.log(articleId)
+    ElMessageBox.confirm(
+        '是否要取消收藏',
+        '温馨提醒',
+        {
+            confirmButtonText: '确认',
+            cancelButtonText: '取消',
+            type: 'warning',
+        }
+    )
+    .then(async () => {
+        let retult = await cancelCollectService(articleId, userId);
+        ElMessage({
+            type: 'success',
+            message: '取消成功',
+        })
+
+        getCollections(userId);
+    })
+    .catch(() => {
+        ElMessage({
+            type: 'info',
+            message: '用户取消操作',
+        })
+    })
+}
+
+//每次访问页面时调用一遍
+getCollections(userId)
 </script>
 <template>
     <el-card class="page-container">
@@ -279,9 +393,10 @@ function goDetail(id) {
             <el-table-column label="状态" prop="state"></el-table-column>   
             <el-table-column label="操作" width="200">
                 <template #default="{ row }">
-                    <el-button :icon="View" circle plain type="default" @click="goDetail(row.id)"></el-button>
+                    <el-button :icon="View" circle plain type="primary" @click="goDetail(row.id)"></el-button>
                     <el-button :icon="Edit" circle plain type="primary" @click="visibleDrawer = true; title = '编辑文章'; articleModel.id = row.id"></el-button>
                     <el-button :icon="Delete" circle plain type="danger" @click="deleteArticle(row)"></el-button>
+                    <el-button :icon="isCollected(row.id) ? StarFilled : Star" circle plain type="primary" @click="isCollected(row.id) ? cancelCollect(row.id) : collect(row.id)"></el-button>
                 </template>
             </el-table-column>
             <template #empty>

@@ -26,7 +26,11 @@ const routes = [
             {path: '/user/info', component: userInfo},
             {path: '/user/avatar', component: userAvatar},
             {path: '/user/resetpassword', component: userResetPassword},
-            {path: '/article/detail', component: articleDetail, props: true}
+            {path: '/article/detail', component: articleDetail,
+                props: (route) => ({
+                    id: route.query.id
+                })
+            }
         ]
     }
 ]
