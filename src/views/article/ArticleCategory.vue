@@ -59,7 +59,7 @@ const addCategory = async () => {
     let result = await addCategoryService(categoryModel.value);
     ElMessage.success(result.message ? result.message : '添加成功');
 
-    getAllCategory();
+    await getAllCategory();
     dialogVisible.value = false;
 }
 
@@ -80,7 +80,7 @@ const updateCategory = async () => {
     let result = await updateCategoryService(categoryModel.value);
     ElMessage.success(result.message ? result.message : '修改成功');
 
-    getAllCategory();
+    await getAllCategory();
     dialogVisible.value = false;
 }
 
@@ -108,7 +108,7 @@ const deleteCategory = async (row) => {
         message: '删除成功',
       })
 
-      getAllCategory();
+      await getAllCategory();
     })
     .catch(() => {
       ElMessage({

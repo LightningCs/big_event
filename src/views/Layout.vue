@@ -7,7 +7,7 @@ import {
     Crop,
     EditPen,
     SwitchButton,
-    CaretBottom
+    CaretBottom, View
 } from '@element-plus/icons-vue'
 import avatar from '@/assets/default.png'
 
@@ -53,7 +53,7 @@ const handleCommand = (command) => {
             userInfoStore.removeInfo();
 
             // 跳转页面
-            router.push('/login');
+            await router.push('/login');
             ElMessage({
                 type: 'success',
                 message: '退出登录成功',
@@ -138,6 +138,7 @@ const handleCommand = (command) => {
                             <el-dropdown-item command="info" :icon="User">基本资料</el-dropdown-item>
                             <el-dropdown-item command="avatar" :icon="Crop">更换头像</el-dropdown-item>
                             <el-dropdown-item command="resetpassword" :icon="EditPen">重置密码</el-dropdown-item>
+                            <el-dropdown-item command="history" :icon="View">浏览记录</el-dropdown-item>
                             <el-dropdown-item command="logout" :icon="SwitchButton">退出登录</el-dropdown-item>
                         </el-dropdown-menu>
                     </template>
@@ -145,10 +146,9 @@ const handleCommand = (command) => {
             </el-header>
             <!-- 中间区域 -->
             <el-main>
-                <!-- <div style="width: 1245px; height: 700px;border: 1px solid red;">
-                    内容展示区
-                </div> -->
-                <router-view></router-view>
+                <keep-alive>
+                    <router-view></router-view>
+                </keep-alive>
             </el-main>
             <!-- 底部区域 -->
             <el-footer>大事件 ©2024 Created by 陈</el-footer>

@@ -108,8 +108,6 @@ const getArticleCategoryList = async () => {
     categorys.value = result.data;
 }
 
-getArticleCategoryList();
-
 // 文章列表查询
 const getArticleList = async () => {
     let params = {
@@ -122,6 +120,8 @@ const getArticleList = async () => {
     let result = await articleListService(params);
     
     articles.value = result.data.items;
+
+    await getArticleCategoryList();
 
     for (let i = 0; i < articles.value.length; i++) {
         let article = articles.value[i];
@@ -153,7 +153,7 @@ const deleteArticle = async (row) => {
         message: '删除成功',
       })
 
-      getArticleList();
+      await getArticleList();
     })
     .catch(() => {
       ElMessage({
@@ -219,7 +219,7 @@ const addArticle = async (clickState) => {
     visibleDrawer.value = false;
 
     clearArticleModel();
-    getArticleList();
+    await getArticleList();
 }
 const title = ref('');
 
@@ -250,7 +250,7 @@ const updateArticle = async () => {
     visibleDrawer.value = false;
 
     clearArticleModel();
-    getArticleList();
+    await getArticleList();
 }
 
 // 跳转到详情页面
@@ -272,22 +272,11 @@ function goDetail(id) {
 }
 
 import { useUserInfoStore } from "@/stores/userInfo.js";
+
 var userInfoStore = useUserInfoStore();
 
 //用户id
-const userId = userInfoStore.info.id;
-/**
- * 收藏文章
- * @param id
- */
-const collect = async (articleId) => {
-    const result = await collectArticleService(articleId, userId);
-
-    //重新获取收藏数据
-    getCollections(userId)
-
-    ElMessage.success(result.message ? result.message : '收藏成功');
-}
+var userId = userInfoStore.info.id;
 
 /**
  * 获取收藏集合
@@ -295,6 +284,7 @@ const collect = async (articleId) => {
  */
 const collections = ref()
 const getCollections = async (userId) => {
+    console.log(userId)
     let result = await getCollectionsService(userId);
     collections.value = result.data;
 }
@@ -313,12 +303,25 @@ const isCollected = (articleId) => {
 }
 
 /**
+ * 收藏文章
+ * @param id
+ */
+const collect = async (articleId) => {
+    const result = await collectArticleService(articleId, userId);
+
+    //重新获取收藏数据
+    await getCollections(userId)
+
+    ElMessage.success(result.message ? result.message : '收藏成功');
+}
+
+/**
  * 取消收藏
  * @param articleId
  * @returns {Promise<void>}
  */
 const cancelCollect = async (articleId) => {
-    console.log(articleId)
+    console.log("删除："  + articleId)
     ElMessageBox.confirm(
         '是否要取消收藏',
         '温馨提醒',
@@ -335,7 +338,7 @@ const cancelCollect = async (articleId) => {
             message: '取消成功',
         })
 
-        getCollections(userId);
+        await getCollections(userId);
     })
     .catch(() => {
         ElMessage({
@@ -344,9 +347,7 @@ const cancelCollect = async (articleId) => {
         })
     })
 }
-
-//每次访问页面时调用一遍
-getCollections(userId)
+getCollections(userId);
 </script>
 <template>
     <el-card class="page-container">
@@ -396,7 +397,8 @@ getCollections(userId)
                     <el-button :icon="View" circle plain type="primary" @click="goDetail(row.id)"></el-button>
                     <el-button :icon="Edit" circle plain type="primary" @click="visibleDrawer = true; title = '编辑文章'; articleModel.id = row.id"></el-button>
                     <el-button :icon="Delete" circle plain type="danger" @click="deleteArticle(row)"></el-button>
-                    <el-button :icon="isCollected(row.id) ? StarFilled : Star" circle plain type="primary" @click="isCollected(row.id) ? cancelCollect(row.id) : collect(row.id)"></el-button>
+                    <el-button v-if="isCollected(row.id)" :icon="StarFilled" circle plain type="primary" @click="cancelCollect(row.id)"></el-button>
+                    <el-button v-else :icon="Star" circle plain type="primary" @click="collect(row.id)"></el-button>
                 </template>
             </el-table-column>
             <template #empty>

@@ -18,18 +18,20 @@ const routes = [
         path: '/', 
         component: layout,
 
-        redirect: '/article/manage',
+        redirect: '/article/category',
         // 子路由
         children: [
-            {path: '/article/category', component: articleCategory},
-            {path: '/article/manage', component: articleManage},
-            {path: '/user/info', component: userInfo},
-            {path: '/user/avatar', component: userAvatar},
-            {path: '/user/resetpassword', component: userResetPassword},
+            {path: '/article/category', component: articleCategory, meta: {render: false}},
+            {path: '/article/manage', component: articleManage, meta: {render: false}},
+            {path: '/user/info', component: userInfo, meta: {render: false}},
+            {path: '/user/avatar', component: userAvatar, meta: {render: false}},
+            {path: '/user/resetpassword', component: userResetPassword, meta: {render: false}},
+            {path: '/user/history', component: '', meta: {render: false}},
             {path: '/article/detail', component: articleDetail,
                 props: (route) => ({
                     id: route.query.id
-                })
+                }),
+                meta: {render: false}
             }
         ]
     }
