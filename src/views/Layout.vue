@@ -7,7 +7,8 @@ import {
     Crop,
     EditPen,
     SwitchButton,
-    CaretBottom, View
+    CaretBottom,
+    View
 } from '@element-plus/icons-vue'
 import avatar from '@/assets/default.png'
 
@@ -118,6 +119,12 @@ const handleCommand = (command) => {
                         </el-icon>
                         <span>重置密码</span>
                     </el-menu-item>
+                    <el-menu-item index="/user/history">
+                        <el-icon>
+                            <View />
+                        </el-icon>
+                        <span>浏览记录</span>
+                    </el-menu-item>
                 </el-sub-menu>
             </el-menu>
         </el-aside>
@@ -125,7 +132,7 @@ const handleCommand = (command) => {
         <el-container>
             <!-- 头部区域 -->
             <el-header>
-                <div>黑马程序员：<strong>{{ userInfoStore.info.nickname }}</strong></div>
+                <div>用户：<strong>{{ userInfoStore.info.nickname }}</strong></div>
                 <el-dropdown placement="bottom-end" @command="handleCommand">
                     <span class="el-dropdown__box">
                         <el-avatar :src="userInfoStore.info.userPic ? userInfoStore.info.userPic : avatar" />

@@ -3,13 +3,13 @@ import { articleService } from "@/api/article.js";
 import { getCommentsByArticleIdService, publishCommentService } from "@/api/comment.js";
 import { ref } from "vue";
 import { useUserInfoStore } from "@/stores/userInfo.js";
-import {ElMessage} from "element-plus";
+import { ElMessage } from "element-plus";
 import avatar from "@/assets/default.png";
-import {} from "@element-plus/icons-vue";
+import { updateHistoryService } from "@/api/history.js";
 
 const article = ref({})
 
-const userInfoStore = useUserInfoStore();
+var userInfoStore = useUserInfoStore();
 
 /**
  * 文章id
@@ -24,6 +24,7 @@ const props = defineProps(['id'])
 const getArticle = async () => {
     let result = await articleService(props.id);
     article.value = result.data;
+    updateHistory(result.data);
 }
 
 /**
@@ -97,6 +98,17 @@ function computeTime (time) {
     } else return time
 }
 
+/**
+ * 更新历史记录
+ */
+const updateHistory = (result) => {
+    updateHistoryService({
+        articleId: result.id,
+        userId: userInfoStore.info.id,
+        createUser: result.createUser
+    });
+}
+
 getArticle();
 getCommentsByArticleId();
 </script>
@@ -147,7 +159,8 @@ getCommentsByArticleId();
                 </el-card>
             </el-space>
             <el-divider content-position="center" v-show="commentList.length !== 0">
-                <el-text type="info" size="small">到底了</el-text></el-divider>
+                <el-text type="info" size="small">到底了</el-text>
+            </el-divider>
             <el-empty v-show="commentList.length === 0" description="快来抢沙发吧~" />
         </template>
         <template #footer>
