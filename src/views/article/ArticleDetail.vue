@@ -1,15 +1,15 @@
 <script setup>
-import { articleService } from "@/api/article.js";
-import { getCommentsByArticleIdService, publishCommentService } from "@/api/comment.js";
-import { ref } from "vue";
-import { useUserInfoStore } from "@/stores/userInfo.js";
-import { ElMessage } from "element-plus";
 import avatar from "@/assets/default.png";
-import { updateHistoryService } from "@/api/history.js";
+import useArticle from "@/hook/useArticle.js";
+import useComment from "@/hook/useComment.js";
 
-const article = ref({})
+let {commentDrawer, commentList, commentModel,
+    getCommentsByArticleId, publish, computeTime, initCommentModel, like, getLike, judgeStatus
+} = useComment();
 
-var userInfoStore = useUserInfoStore();
+let {article,
+    getArticle
+} = useArticle();
 
 /**
  * 文章id
@@ -18,99 +18,19 @@ var userInfoStore = useUserInfoStore();
 const props = defineProps(['id'])
 
 /**
- * 根据文章id获取文章
- * @returns {Promise<void>}
+ * 改变喜欢状态
+ * @param id
+ * @param l
+ * @returns {*}
  */
-const getArticle = async () => {
-    let result = await articleService(props.id);
-    article.value = result.data;
-    updateHistory(result.data);
+function clickFun(id, l) {
+    return like(id, props.id, judgeStatus(id, l));
 }
 
-/**
- * 评论区抽屉
- * @type {Ref<UnwrapRef<boolean>>}
- */
-const commentDrawer = ref(false)
-
-/**
- * 评论内容
- * @type {Ref<UnwrapRef<string>>}
- */
-const commentModel = ref({
-    content: '',
-    articleId: props.id,
-    userId: userInfoStore.info.id
-})
-
-/**
- * 评论集合
- * @type {Ref<UnwrapRef<*[]>>}
- */
-const commentList = ref([])
-
-function clsCommentModel () {
-    commentModel.value = {
-        content: '',
-        articleId: props.id,
-        userId: userInfoStore.info.id
-    }
-}
-
-/**
- * 通过文章id获取所有评论
- * @returns {Promise<void>}
- */
-const getCommentsByArticleId = async () => {
-    let result = await getCommentsByArticleIdService(props.id);
-    commentList.value = result.data;
-}
-
-/**
- * 发表评论
- */
-async function publish ()  {
-    let result = await publishCommentService(commentModel.value);
-
-    ElMessage.success(result.message ? result.message : '发表成功');
-
-    await getCommentsByArticleId();
-
-    clsCommentModel();
-}
-
-/**
- * 比较时间
- * @param time
- * @returns {*|string}
- */
-function computeTime (time) {
-    const value = parseInt((new Date() - new Date(time)) / 1000);
-
-    if (value < 60) {
-        return value + '秒前'
-    } else if (value < 60*60) {
-        return parseInt(value / 60) + '分钟前'
-    } else if (value < 60*60*24) {
-        return parseInt(value / 3600) + '小时前'
-    } else if (value < 60*60*24*3) {
-        return parseInt(value / 86400) + '天前'
-    } else return time
-}
-
-/**
- * 更新历史记录
- */
-const updateHistory = (result) => {
-    updateHistoryService({
-        articleId: result.id,
-        userId: userInfoStore.info.id,
-        createUser: result.createUser
-    });
-}
-
-getArticle();
-getCommentsByArticleId();
+initCommentModel(props.id);
+getArticle(props.id);
+getCommentsByArticleId(props.id);
+getLike();
 </script>
 
 <template>
@@ -121,7 +41,7 @@ getCommentsByArticleId();
         <p v-html="article.content" />
         <el-divider />
     </el-card>
-    <el-button type="primary" style="margin-left: 16px" @click="commentDrawer = true">
+    <el-button type="primary" style="margin-left: 16px" @click="commentModel.responseId = null; commentDrawer = true">
         评论区
     </el-button>
 
@@ -148,11 +68,16 @@ getCommentsByArticleId();
                         </span>
                         <span style="float: right;">
                             <span style="margin-right: 5px">
-                                <el-button link size="small" @click="like()">❤️</el-button>
-                                <el-text type="info" size="small">-1</el-text>
+                                <el-button link size="small" @click="clickFun(comment.id, 'like')">❤️</el-button>
+                                <el-text type="info" size="small">{{ comment.like }}</el-text>
                             </span>
                             <span>
-                                <el-button link size="small" @click="dislike()">💔</el-button>
+                                <el-button link size="small" @click="clickFun(comment.id, 'dislike')">💔</el-button>
+                            </span>
+                            <span>
+                                <el-icon>
+                                    <el-button link size="small" @click="commentModel.responseId = comment.userId">💬</el-button>
+                                </el-icon>
                             </span>
                         </span>
                     </div>
@@ -170,7 +95,7 @@ getCommentsByArticleId();
                         <el-input
                             v-model="commentModel.content"
                             type="textarea"
-                            placeholder="此处输入评论"
+                            :placeholder="commentModel.responseId === null ? '此处输入评论' : '回复'"
                         ></el-input>
                         <el-divider content-position="right">
                             <el-button type="primary" @click="publish()">发表评论</el-button>

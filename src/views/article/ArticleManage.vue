@@ -4,227 +4,46 @@ import {
     Delete,
     View,
     Star,
-    StarFilled
+    StarFilled,
+    ChatSquare
 } from '@element-plus/icons-vue'
-
+import {Plus} from '@element-plus/icons-vue'
+import { useTokenStore } from '@/stores/token';
 import { ref } from 'vue'
+import { useRouter } from "vue-router";
+import useCategory from '@/hook/useCategory.js'
+import useArticle from '@/hook/useArticle.js'
+import useCollection from '@/hook/useCollection.js'
+import useUser from "@/hook/useUser.js";
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
-//文章分类数据模型
-const categorys = ref([
-    {
-        "id": 3,
-        "categoryName": "美食",
-        "categoryAlias": "my",
-        "createTime": "2023-09-02 12:06:59",
-        "updateTime": "2023-09-02 12:06:59"
-    },
-    {
-        "id": 4,
-        "categoryName": "娱乐",
-        "categoryAlias": "yl",
-        "createTime": "2023-09-02 12:08:16",
-        "updateTime": "2023-09-02 12:08:16"
-    },
-    {
-        "id": 5,
-        "categoryName": "军事",
-        "categoryAlias": "js",
-        "createTime": "2023-09-02 12:08:33",
-        "updateTime": "2023-09-02 12:08:33"
-    }
-])
+let {
+    categories, categoryId, state,
+} = useCategory();
 
-//用户搜索时选中的分类id
-const categoryId=ref('')
+let {
+    articles, pageNum, pageSize, total, articleModel, visibleDrawer,
+    getArticlesByPagesAndCategory, deleteArticle, addArticle, updateArticle
+} = useArticle();
 
-//用户搜索时选中的发布状态
-const state=ref('')
-
-//文章列表数据模型
-const articles = ref([
-    {
-        "id": 5,
-        "title": "陕西旅游攻略",
-        "content": "兵马俑,华清池,法门寺,华山...爱去哪去哪...",
-        "coverImg": "https://big-event-gwd.oss-cn-beijing.aliyuncs.com/9bf1cf5b-1420-4c1b-91ad-e0f4631cbed4.png",
-        "state": "草稿",
-        "categoryId": 2,
-        "createTime": "2023-09-03 11:55:30",
-        "updateTime": "2023-09-03 11:55:30"
-    },
-    {
-        "id": 5,
-        "title": "陕西旅游攻略",
-        "content": "兵马俑,华清池,法门寺,华山...爱去哪去哪...",
-        "coverImg": "https://big-event-gwd.oss-cn-beijing.aliyuncs.com/9bf1cf5b-1420-4c1b-91ad-e0f4631cbed4.png",
-        "state": "草稿",
-        "categoryId": 2,
-        "createTime": "2023-09-03 11:55:30",
-        "updateTime": "2023-09-03 11:55:30"
-    },
-    {
-        "id": 5,
-        "title": "陕西旅游攻略",
-        "content": "兵马俑,华清池,法门寺,华山...爱去哪去哪...",
-        "coverImg": "https://big-event-gwd.oss-cn-beijing.aliyuncs.com/9bf1cf5b-1420-4c1b-91ad-e0f4631cbed4.png",
-        "state": "草稿",
-        "categoryId": 2,
-        "createTime": "2023-09-03 11:55:30",
-        "updateTime": "2023-09-03 11:55:30"
-    },
-])
-
-//分页条数据模型
-const pageNum = ref(1)//当前页
-const total = ref(20)//总条数
-const pageSize = ref(3)//每页条数
-
-/**
- * 文章相关接口
- */
-import {
-        articleCategoryListService,
-        articleListService,
-        deleteArticleService,
-        addArticleService,
-        updateArticleService
-        } from '@/api/article.js'
-
-/**
- * 收藏相关接口
- */
-import {
-        collectArticleService,
-        getCollectionsService,
-        cancelCollectService
-        } from '@/api/collection.js'
-
-import { ElMessage, ElMessageBox } from 'element-plus'
-
-// 文章分类
-const getArticleCategoryList = async () => {
-    let result = await articleCategoryListService();
-
-    categorys.value = result.data;
-}
-
-// 文章列表查询
-const getArticleList = async () => {
-    let params = {
-        pageNum: pageNum.value,
-        pageSize: pageSize.value,
-        categoryId: categoryId.value ? categoryId.value : null,
-        state: state.value ? state.value : null
-    }
-
-    let result = await articleListService(params);
-    
-    articles.value = result.data.items;
-
-    await getArticleCategoryList();
-
-    for (let i = 0; i < articles.value.length; i++) {
-        let article = articles.value[i];
-
-        for (let j = 0; j < categorys.value.length; j++) {
-            if (article.categoryId === categorys.value[j].id) {
-                article.categoryName = categorys.value[j].categoryName;
-            }
-        }
-    }
-    total.value=result.data.total;
-}
-
-// 文章删除
-const deleteArticle = async (row) => {
-    ElMessageBox.confirm(
-    '你确认要删除该文章信息吗?',
-    '温馨提示',
-    {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  )
-    .then(async () => {
-      let retult = await deleteArticleService(row.id);
-      ElMessage({
-        type: 'success',
-        message: '删除成功',
-      })
-
-      await getArticleList();
-    })
-    .catch(() => {
-      ElMessage({
-        type: 'info',
-        message: '用户取消删除',
-      })
-    })
-}
+let {
+    getCollections, isCollected, collect, cancelCollect
+} = useCollection();
 
 //当每页条数发生了变化，调用此函数
-getArticleList();
+getArticlesByPagesAndCategory();
 
 const onSizeChange = (size) => {
     pageSize.value = size;
-    getArticleList();
+    getArticlesByPagesAndCategory();
 }
 //当前页码发生变化，调用此函数
 const onCurrentChange = (num) => {
     pageNum.value = num;
-    getArticleList();
+    getArticlesByPagesAndCategory();
 }
 
-import {Plus} from '@element-plus/icons-vue'
-//控制抽屉是否显示
-const visibleDrawer = ref(false);
-//添加表单数据模型
-const articleModel = ref({
-    id: 0,
-    title: '',
-    categoryId: '',
-    coverImg: '',
-    content:'',
-    state:''
-})
-
-/**
- * 清空文章的数据模型
- */
-const clearArticleModel = () => {
-    articleModel.value.id = 0,
-    articleModel.value.title = '',
-    articleModel.value.categoryId = '',
-    articleModel.value.coverImg = '',
-    articleModel.value.content = '',
-    articleModel.value.state = ''
-}
-
-/**
- * 添加文章
- * @param clickState
- * @returns {Promise<void>}
- */
-const addArticle = async (clickState) => {
-
-    // 文章上传状态
-    articleModel.value.state = clickState;
-
-    let result = await addArticleService(articleModel.value);
-
-    ElMessage.success(result.message ? result.message : '添加成功');
-
-    // 关闭抽屉
-    visibleDrawer.value = false;
-
-    clearArticleModel();
-    await getArticleList();
-}
 const title = ref('');
-
-import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import { useTokenStore } from '@/stores/token';
 
 const tokenStore = useTokenStore();
 
@@ -236,25 +55,6 @@ const uploadSuccess = (result) => {
     articleModel.value.coverImg = result.data;
     console.log(result.data);
 }
-
-/**
- * 更新文章
- * @returns {Promise<void>}
- */
-const updateArticle = async () => {
-    let result = await updateArticleService(articleModel.value);
-
-    ElMessage.success(result.message ? result.message : '编辑成功');
-
-    // 关闭抽屉
-    visibleDrawer.value = false;
-
-    clearArticleModel();
-    await getArticleList();
-}
-
-// 跳转到详情页面
-import { useRouter } from "vue-router";
 
 const router = useRouter();
 
@@ -271,82 +71,10 @@ function goDetail(id) {
     })
 }
 
-import { useUserInfoStore } from "@/stores/userInfo.js";
-
-var userInfoStore = useUserInfoStore();
+let userInfo = useUser()
 
 //用户id
-var userId = userInfoStore.info.id;
-
-/**
- * 获取收藏集合
- * @type {Ref<any>}
- */
-const collections = ref()
-const getCollections = async (userId) => {
-    console.log(userId)
-    let result = await getCollectionsService(userId);
-    collections.value = result.data;
-}
-
-/**
- * 判断改文章是否已经被当前用户收藏
- * @param articleId
- * @returns {boolean}
- */
-const isCollected = (articleId) => {
-    for (const item in collections.value) {
-        if (collections.value[item] === articleId) return true;
-    }
-
-    return false;
-}
-
-/**
- * 收藏文章
- * @param id
- */
-const collect = async (articleId) => {
-    const result = await collectArticleService(articleId, userId);
-
-    //重新获取收藏数据
-    await getCollections(userId)
-
-    ElMessage.success(result.message ? result.message : '收藏成功');
-}
-
-/**
- * 取消收藏
- * @param articleId
- * @returns {Promise<void>}
- */
-const cancelCollect = async (articleId) => {
-    console.log("删除："  + articleId)
-    ElMessageBox.confirm(
-        '是否要取消收藏',
-        '温馨提醒',
-        {
-            confirmButtonText: '确认',
-            cancelButtonText: '取消',
-            type: 'warning',
-        }
-    )
-    .then(async () => {
-        let retult = await cancelCollectService(articleId, userId);
-        ElMessage({
-            type: 'success',
-            message: '取消成功',
-        })
-
-        await getCollections(userId);
-    })
-    .catch(() => {
-        ElMessage({
-            type: 'info',
-            message: '用户取消操作',
-        })
-    })
-}
+let userId = userInfo.id;
 getCollections(userId);
 </script>
 <template>
@@ -363,9 +91,9 @@ getCollections(userId);
         <el-form inline>
             <el-form-item label="文章分类：" style="width: 240px">
                 <el-select placeholder="请选择" v-model="categoryId">
-                    <el-option 
-                        v-for="c in categorys" 
-                        :key="c.id" 
+                    <el-option
+                        v-for="c in categories"
+                        :key="c.id"
                         :label="c.categoryName"
                         :value="c.id">
                     </el-option>
@@ -379,7 +107,7 @@ getCollections(userId);
                 </el-select>
             </el-form-item>
             <el-form-item>
-                <el-button type="primary" @click="getArticleList">搜索</el-button>
+                <el-button type="primary" @click="getArticlesByPagesAndCategory">搜索</el-button>
                 <el-button @click="categoryId = ''; state = ''">重置</el-button>
             </el-form-item>
         </el-form>
@@ -418,7 +146,7 @@ getCollections(userId);
                 </el-form-item>
                 <el-form-item label="文章分类">
                     <el-select placeholder="请选择" v-model="articleModel.categoryId">
-                        <el-option v-for="c in categorys" :key="c.id" :label="c.categoryName" :value="c.id">
+                        <el-option v-for="c in categories" :key="c.id" :label="c.categoryName" :value="c.id">
                         </el-option>
                     </el-select>
                 </el-form-item>

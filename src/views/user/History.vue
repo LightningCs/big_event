@@ -1,29 +1,10 @@
 <script setup>
 import avatar from "@/assets/default.png";
-import { getHistoriesService } from "@/api/history.js";
-import {useUserInfoStore} from "@/stores/userInfo.js";
-import {ref} from "vue";
-
-/**
- * 获取用户信息
- */
-var userStore = new useUserInfoStore();
-
-/**
- * 历史记录
- * @type {Ref<UnwrapRef<*[]>>}
- */
-const histories = ref([]);
-
-/**
- * 获取该用户的所有历史记录
- */
-const getHistories = async () => {
-    let result = await getHistoriesService(userStore.info.id);
-    histories.value = result.data;
-}
+import useHistory from '@/hook/useHistory.js'
+let {histories, getHistories} = useHistory();
 
 getHistories();
+
 </script>
 <template>
     <el-card>

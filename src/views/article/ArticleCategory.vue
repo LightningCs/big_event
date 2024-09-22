@@ -3,49 +3,16 @@ import {
     Edit,
     Delete
 } from '@element-plus/icons-vue'
-import { ref } from 'vue'
-const categorys = ref([
-    {
-        "id": 3,
-        "categoryName": "美食",
-        "categoryAlias": "my",
-        "createTime": "2023-09-02 12:06:59",
-        "updateTime": "2023-09-02 12:06:59"
-    },
-    {
-        "id": 4,
-        "categoryName": "娱乐",
-        "categoryAlias": "yl",
-        "createTime": "2023-09-02 12:08:16",
-        "updateTime": "2023-09-02 12:08:16"
-    },
-    {
-        "id": 5,
-        "categoryName": "军事",
-        "categoryAlias": "js",
-        "createTime": "2023-09-02 12:08:33",
-        "updateTime": "2023-09-02 12:08:33"
-    }
-])
+import useCategory from "@/hook/useCategory.js";
 
-import { articleCategoryListService, addCategoryService, updateCategoryService, deleteCategoryService } from '@/api/article.js'
-import { ElMessage, ElMessageBox } from 'element-plus'
+let {categories, title, categoryModel, dialogVisible,
+    getAllCategory, addCategory, deleteCategory, clearDate, updateCategory
+} = useCategory();
 
-const getAllCategory = async () => {
-    let result = await articleCategoryListService();
-    categorys.value = result.data;
-}
 getAllCategory();
 
-const dialogVisible = ref(false)
-
-//添加分类数据模型
-const categoryModel = ref({
-    categoryName: '',
-    categoryAlias: ''
-})
 //添加分类表单校验
-const rules = {
+let rules = {
     categoryName: [
         { required: true, message: '请输入分类名称', trigger: 'blur' },
     ],
@@ -54,68 +21,16 @@ const rules = {
     ]
 }
 
-// 调用接口，添加数据
-const addCategory = async () => {
-    let result = await addCategoryService(categoryModel.value);
-    ElMessage.success(result.message ? result.message : '添加成功');
-
-    await getAllCategory();
-    dialogVisible.value = false;
-}
-
-// 控制标题展示
-const title = ref('');
-
-// 编辑弹窗
+/**
+ * 编辑弹窗
+ * @param row
+ */
 const showDialog = (row) => {
     dialogVisible.value = true;
     title.value = '编辑分类';
     categoryModel.value.categoryName = row.categoryName;
     categoryModel.value.categoryAlias = row.categoryAlias;
     categoryModel.value.id = row.id;
-}
-
-// 调用接口，更新分类
-const updateCategory = async () => {
-    let result = await updateCategoryService(categoryModel.value);
-    ElMessage.success(result.message ? result.message : '修改成功');
-
-    await getAllCategory();
-    dialogVisible.value = false;
-}
-
-// 清空模型数据
-const clearDate = () => {
-    categoryModel.value.categoryName = '';
-    categoryModel.value.categoryAlias = '';
-}
-
-// 调用接口，删除分类
-const deleteCategory = async (row) => {
-    ElMessageBox.confirm(
-    '你确认要删除该分类信息吗?',
-    '温馨提示',
-    {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
-      type: 'warning',
-    }
-  )
-    .then(async () => {
-      let retult = await deleteCategoryService(row.id);
-      ElMessage({
-        type: 'success',
-        message: '删除成功',
-      })
-
-      await getAllCategory();
-    })
-    .catch(() => {
-      ElMessage({
-        type: 'info',
-        message: '用户取消删除',
-      })
-    })
 }
 </script>
 <template>
@@ -128,7 +43,7 @@ const deleteCategory = async (row) => {
                 </div>
             </div>
         </template>
-        <el-table :data="categorys" style="width: 100%">
+        <el-table :data="categories" style="width: 100%">
             <el-table-column label="序号" width="100" type="index"> </el-table-column>
             <el-table-column label="分类名称" prop="categoryName"></el-table-column>
             <el-table-column label="分类别名" prop="categoryAlias"></el-table-column>
@@ -155,7 +70,7 @@ const deleteCategory = async (row) => {
             <template #footer>
                 <span class="dialog-footer">
                     <el-button @click="dialogVisible = false">取消</el-button>
-                    <el-button type="primary" @click="title === '添加分类' ? addCategory() : updateCategory()"> 确认 </el-button>
+                    <el-button type="primary" @click="title === '添加分类' ? addCategory() : updateCategory(dialogVisible)"> 确认 </el-button>
                 </span>
             </template>
         </el-dialog>
