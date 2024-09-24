@@ -1,4 +1,6 @@
 import { useUserInfoStore } from "@/stores/userInfo.js";
+import {ref} from "vue";
+import {getUserDetailService} from "@/api/user.js";
 
 export default function () {
     /**
@@ -7,5 +9,23 @@ export default function () {
      */
     let userInfo = useUserInfoStore().info
 
-    return {userInfo}
+    /**
+     * 用户详细信息
+     * @type {Ref<UnwrapRef<{}>>}
+     */
+    let userDetail = ref({})
+
+    /**
+     * 获取用户详细信息
+     * @param userId
+     * @returns {Promise<void>}
+     */
+    async function getUserDetail(userId) {
+        let result = await getUserDetailService(userId);
+        userDetail.value = result.data;
+    }
+
+    return {userInfo, userDetail,
+        getUserDetail
+    }
 }

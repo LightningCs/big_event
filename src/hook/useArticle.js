@@ -3,7 +3,7 @@ import {
     addArticleService,
     articleListService,
     articleService,
-    deleteArticleService,
+    deleteArticleService, getIndividualArticleService,
     updateArticleService
 } from "@/api/article.js";
 import useHistory from "@/hook/useHistory.js";
@@ -40,6 +40,12 @@ export default function () {
      * @type {Ref<UnwrapRef<number>>}
      */
     let pageSize = ref(3)
+
+    /**
+     * 用户发表的文章集合
+     * @type {Ref<any>}
+     */
+    let individualArticles = ref()
 
     /**
      * 文章数据模型
@@ -186,6 +192,23 @@ export default function () {
             articleModel.value.state = ''
     }
 
-    return {article, articles, pageNum, pageSize, total, articleModel, visibleDrawer,
-        getArticle, getArticlesByPagesAndCategory, deleteArticle, addArticle, updateArticle}
+    /**
+     * 获取用户个人发表的文章
+     * @param userId
+     * @param pageSize
+     * @returns {Promise<void>}
+     */
+    async function getIndividualArticle(userId, pageSize) {
+        let params = {
+            userId: userId,
+            pageSize: pageSize
+        }
+
+        let result = await getIndividualArticleService(params);
+
+        individualArticles.value = result.data;
+    }
+
+    return {article, articles, pageNum, pageSize, total, articleModel, visibleDrawer, individualArticles,
+        getArticle, getArticlesByPagesAndCategory, deleteArticle, addArticle, updateArticle, getIndividualArticle}
 }

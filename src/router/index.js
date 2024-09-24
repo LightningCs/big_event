@@ -12,6 +12,7 @@ import userInfo from '@/views/user/UserInfo.vue'
 import userResetPassword from '@/views/user/UserResetPassword.vue'
 import articleDetail from "@/views/article/ArticleDetail.vue"
 import history from '@/views/user/History.vue'
+import userDetail from "@/views/user/UserDetail.vue";
 
 const routes = [
     {path: '/login', component: login},
@@ -28,6 +29,11 @@ const routes = [
             {path: '/user/avatar', component: userAvatar, meta: {render: false}},
             {path: '/user/resetpassword', component: userResetPassword, meta: {render: false}},
             {path: '/user/history', component: history, meta: {render: false}},
+            {path: '/user/detail', component: userDetail,
+                props: (router) => ({
+                    userId: router.query.userId
+                }),
+                meta: {render: false}},
             {path: '/article/detail', component: articleDetail,
                 props: (route) => ({
                     id: route.query.id

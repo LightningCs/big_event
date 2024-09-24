@@ -2,6 +2,7 @@
 import avatar from "@/assets/default.png";
 import useArticle from "@/hook/useArticle.js";
 import useComment from "@/hook/useComment.js";
+import useUser from "@/hook/useUser.js";
 
 let {commentDrawer, commentList, commentModel,
     getCommentsByArticleId, publish, computeTime, initCommentModel, like, getLike, judgeStatus
@@ -30,7 +31,7 @@ function clickFun(id, l) {
 initCommentModel(props.id);
 getArticle(props.id);
 getCommentsByArticleId(props.id);
-getLike();
+getLike(props.id);
 </script>
 
 <template>
@@ -55,7 +56,7 @@ getLike();
                 <el-card v-for="comment in commentList" style="width: 404px">
                     <div>
                         <el-avatar :src="comment.userPic ? comment.userPic : avatar" size="small"/>
-                        <el-link :underline="false" type="info" :href="'/user/detail?userId=' + comment.userId" >{{ comment.username }}</el-link>
+                        <el-link :underline="false" type="info" :href="comment.userId === useUser().userInfo.id ? '/user/info' : '/user/detail?userId=' + comment.userId" >{{ comment.username }}</el-link>
                     </div>
                     <div>
                         <span>

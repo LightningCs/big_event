@@ -101,6 +101,8 @@ export default function () {
         let result = await getLikeService(userId);
         likeList.value = new Map(Object.entries(result.data));
 
+        console.log(articleId)
+
         //更新评论集合
         await getCommentsByArticleId(articleId);
     }

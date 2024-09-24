@@ -36,3 +36,7 @@ export const updateUserInfoService = (userInfo) => {
 export const updateUserPasswordService = (pwd) => {
     return request.patch('/user/updatePwd', pwd);
 }
+
+export const getUserDetailService = (userId) => {
+    return request.get('/user?userId=' + userId);
+}

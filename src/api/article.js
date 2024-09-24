@@ -46,3 +46,7 @@ export const updateArticleService = (articleData) => {
 export const articleService = (id) => {
     return request.get('/article/detail?id=' + id);
 }
+
+export const getIndividualArticleService = (params) => {
+    return request.get('/article/individual', {params: params});
+}
