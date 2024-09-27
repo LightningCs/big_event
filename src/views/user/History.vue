@@ -17,16 +17,16 @@ getHistories();
             <el-card v-for="history in histories" style="width: 1205px; padding-bottom: 1%">
                 <!--文章头像-->
                 <span class="range">
-                <el-image :src="history.coverImg" style="width: 75px; height: 75px; border-radius: 5px;" />
-            </span>
+                    <el-image :src="history.coverImg" style="width: 75px; height: 75px; border-radius: 5px;" />
+                </span>
                 <span class="range space">
-                <el-link :underline="false" type="info" :href="'/article/detail?id=' + history.articleId" >{{ history.title }}</el-link>
-                <br>
-                <el-avatar :src="history.userPic ? history.userPic : avatar" size="small" style="margin: 5px 5px 0;" />
-                <el-link :underline="false" type="info" :href="'/user/detail?userId=' + history.userId" >{{ history.createUsername }}</el-link>
-                <br>
-                <el-text type="info" size="small">{{history.createTime}}</el-text>
-            </span>
+                    <el-link :underline="false" type="info" :href="'/article/detail?id=' + history.articleId" >{{ history.title }}</el-link>
+                    <br>
+                    <el-avatar :src="history.userPic ? history.userPic : avatar" size="small" style="margin: 5px 5px 0;" />
+                    <el-link :underline="false" type="info" :href="'/user/detail?userId=' + history.userId" >{{ history.createUsername }}</el-link>
+                    <br>
+                    <el-text type="info" size="small">{{history.createTime}}</el-text>
+                </span>
             </el-card>
         </el-space>
         <el-divider content-position="center" v-show="histories.length !== 0" />

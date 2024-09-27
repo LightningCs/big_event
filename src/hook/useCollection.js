@@ -34,7 +34,6 @@ export default function () {
      * @returns {Promise<void>}
      */
     const cancelCollect = async (articleId) => {
-        console.log("删除："  + articleId)
         ElMessageBox.confirm(
             '是否要取消收藏',
             '温馨提醒',
@@ -67,7 +66,6 @@ export default function () {
      * @returns {Promise<void>}
      */
     async function getCollections() {
-        console.log(userId)
         let result = await getCollectionsService(userId);
         collections.value = result.data;
     }
